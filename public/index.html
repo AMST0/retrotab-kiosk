@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>RetroTab Kiosk — Legacy iPad AI Wall Hub</title>
+<style>
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    background: #050912; color: #e2e8f0;
+    font-family: -apple-system, Helvetica Neue, Arial, sans-serif;
+    overflow: hidden;
+}
+body.night-mode { background: #020408; color: #cbd5e1; }
+body.night-mode .card { background: #070c16; border-color: #131f33; }
+
+.topbar {
+    height: 44px; padding: 0 14px;
+    background: #080f1d; border-bottom: 1px solid #172338;
+    display: table; width: 100%;
+}
+.topbar-left, .topbar-right { display: table-cell; vertical-align: middle; }
+.topbar-right { text-align: right; }
+.brand-pill {
+    display: inline-block; padding: 5px 12px; border-radius: 16px;
+    background: #0d1a2e; border: 1px solid #1f3354;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.7px; color: #38bdf8;
+}
+.status-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 4px;
+    background: #10b981; margin-right: 6px; vertical-align: middle;
+}
+.top-btn {
+    display: inline-block; margin-left: 6px; padding: 5px 11px; border-radius: 14px;
+    background: #0f192b; border: 1px solid #223452; color: #cbd5e1;
+    font-size: 11px; font-weight: 600; cursor: pointer;
+}
+.top-btn.active { background: #0369a1; border-color: #38bdf8; color: #ffffff; }
+.top-btn.warn { background: #78350f; border-color: #f59e0b; color: #fef3c7; }
+
+.grid-wrap {
+    padding: 10px 12px; height: calc(100% - 44px);
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+.row { width: 100%; font-size: 0; margin-bottom: 10px; }
+.col-left { display: inline-block; vertical-align: top; width: 64%; padding-right: 10px; font-size: 13px; }
+.col-right { display: inline-block; vertical-align: top; width: 36%; font-size: 13px; }
+.col-half { display: inline-block; vertical-align: top; width: 50%; font-size: 13px; }
+.col-half.pad-r { padding-right: 5px; }
+.col-half.pad-l { padding-left: 5px; }
+
+.card {
+    background: #0b1322; border: 1px solid #1a2942; border-radius: 14px;
+    padding: 12px 14px; margin-bottom: 10px;
+}
+.card-title {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    color: #64748b; margin-bottom: 8px;
+}
+
+.clock-big { font-size: 46px; font-weight: 700; letter-spacing: 1px; color: #f8fafc; line-height: 1.05; }
+.clock-date { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+
+.weather-box {
+    border-radius: 12px; padding: 12px 14px;
+    background: #0f223d; border: 1px solid #1e3a5f;
+}
+.weather-box.rain { background: #102038; border-color: #38bdf8; }
+.weather-temp { font-size: 32px; font-weight: 700; color: #f8fafc; }
+.weather-meta { font-size: 12px; color: #bae6fd; margin-top: 2px; }
+
+.bus-row {
+    padding: 7px 10px; border-radius: 9px; margin-bottom: 6px;
+    background: #101b30; border: 1px solid #1e2f4d;
+}
+.bus-line {
+    display: inline-block; padding: 2px 7px; border-radius: 6px;
+    background: #0284c7; color: #ffffff; font-size: 11px; font-weight: 700; margin-right: 8px;
+}
+.bus-eta { float: right; font-weight: 700; color: #38bdf8; font-size: 12px; }
+.bus-sub { font-size: 11px; color: #94a3b8; margin-top: 3px; }
+
+.ai-reply {
+    padding: 9px 11px; border-radius: 10px; background: #0f1b30;
+    border-left: 3px solid #38bdf8; color: #e2e8f0; font-size: 12px; line-height: 1.45;
+    min-height: 40px; margin-bottom: 8px;
+}
+.chip-bar { margin-bottom: 8px; }
+.chip-btn {
+    display: inline-block; margin: 0 5px 5px 0; padding: 6px 11px; border-radius: 14px;
+    background: #112038; border: 1px solid #243c63; color: #e2e8f0;
+    font-size: 11px; font-weight: 600; cursor: pointer;
+}
+.chip-btn.scene-focus { border-color: #38bdf8; color: #7dd3fc; }
+.chip-btn.scene-sleep { border-color: #818cf8; color: #c7d2fe; }
+.chip-btn.scene-leave { border-color: #34d399; color: #6ee7b7; }
+
+.input-row { width: 100%; display: table; }
+.input-cell { display: table-cell; width: 100%; padding-right: 6px; }
+.btn-cell { display: table-cell; white-space: nowrap; }
+.text-input {
+    width: 100%; padding: 8px 10px; border-radius: 9px;
+    background: #070d18; border: 1px solid #233654; color: #f8fafc; font-size: 12px;
+}
+.primary-btn {
+    padding: 8px 14px; border-radius: 9px; border: none;
+    background: #0284c7; color: #ffffff; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+
+.media-wrap { display: table; width: 100%; }
+.media-art-cell { display: table-cell; width: 64px; vertical-align: middle; padding-right: 12px; }
+.media-art {
+    width: 60px; height: 60px; border-radius: 10px; background: #13223b;
+    border: 1px solid #243b61; object-fit: cover; display: block;
+}
+.media-info-cell { display: table-cell; vertical-align: middle; }
+.track-name { font-size: 14px; font-weight: 700; color: #f8fafc; }
+.track-artist { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+.seek-bar-bg {
+    width: 100%; height: 8px; border-radius: 4px; background: #16243d;
+    margin: 9px 0 8px 0; cursor: pointer; overflow: hidden;
+}
+.seek-bar-fill { height: 100%; width: 0%; background: #10b981; }
+.ctrl-btn {
+    display: inline-block; padding: 6px 11px; margin-right: 5px; margin-bottom: 4px;
+    border-radius: 8px; background: #122036; border: 1px solid #253b5e;
+    color: #f1f5f9; font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.ctrl-btn.play { background: #059669; border-color: #10b981; }
+.select-box {
+    background: #080f1d; border: 1px solid #223554; color: #cbd5e1;
+    border-radius: 8px; padding: 5px 8px; font-size: 11px; max-width: 165px;
+}
+
+.cam-frame {
+    width: 100%; height: 168px; border-radius: 10px;
+    background: #060a14; border: 1px solid #1c2d4a; object-fit: cover; display: block;
+}
+.tab-bar { margin-bottom: 8px; }
+.tab-btn {
+    display: inline-block; padding: 5px 10px; margin-right: 5px; border-radius: 8px;
+    background: #0d182b; border: 1px solid #1f3354; color: #94a3b8;
+    font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.tab-btn.active { background: #0284c7; border-color: #38bdf8; color: #ffffff; }
+.feed-list { max-height: 155px; overflow-y: auto; }
+.feed-item {
+    padding: 7px 9px; border-radius: 8px; margin-bottom: 5px;
+    background: #0e192d; border: 1px solid #1b2c49; font-size: 12px;
+}
+.feed-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+.task-row-btn {
+    width: 100%; text-align: left; padding: 7px 9px; margin-bottom: 5px;
+    border-radius: 8px; background: #0e192d; border: 1px solid #1e3254;
+    color: #e2e8f0; font-size: 12px; cursor: pointer;
+}
+.task-row-btn.done { color: #64748b; text-decoration: line-through; background: #09111f; }
+
+.pc-row { margin-top: 6px; }
+.vol-slider { width: 100%; margin: 6px 0; }
+
+/* Login Overlay */
+.overlay-full {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: #040811; z-index: 900; padding-top: 80px; text-align: center;
+}
+.login-box {
+    display: inline-block; width: 320px; text-align: left;
+    background: #0b1424; border: 1px solid #1e3152; border-radius: 16px; padding: 22px;
+}
+.login-title { font-size: 18px; font-weight: 700; color: #f8fafc; margin-bottom: 6px; }
+.login-sub { font-size: 12px; color: #94a3b8; margin-bottom: 14px; }
+.login-err { font-size: 12px; color: #f87171; min-height: 18px; margin-top: 8px; }
+
+/* Minimal Standby Wall Clock Overlay */
+.standby-overlay {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: #000000; z-index: 950; text-align: center; padding-top: 150px; cursor: pointer;
+}
+.standby-clock { font-size: 112px; font-weight: 700; color: #e2e8f0; letter-spacing: 3px; line-height: 1; }
+.standby-date { font-size: 20px; color: #64748b; margin-top: 14px; }
+.standby-meta { font-size: 15px; color: #38bdf8; margin-top: 26px; letter-spacing: 0.4px; }
+.standby-hint { font-size: 11px; color: #334155; margin-top: 44px; }
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="login-overlay" class="overlay-full">
+    <div class="login-box">
+        <div class="login-title">RetroTab Kiosk</div>
+        <div class="login-sub">Pure ES5 Smart Wall Hub — Sign in to unlock</div>
+        <div style="margin-bottom:10px;">
+            <input id="login-user" class="text-input" type="text" placeholder="Username" value="admin">
+        </div>
+        <div style="margin-bottom:12px;">
+            <input id="login-pass" class="text-input" type="password" placeholder="Password">
+        </div>
+        <button class="primary-btn" style="width:100%;" onclick="submitLogin()">Unlock Wall Hub</button>
+        <div id="login-error" class="login-err"></div>
+    </div>
+</div>
+
+<!-- Minimal Standby Wall Clock Overlay -->
+<div id="standby-overlay" class="standby-overlay" onclick="exitStandbyMode()">
+    <div id="standby-clock" class="standby-clock">00:00</div>
+    <div id="standby-date" class="standby-date">Loading date...</div>
+    <div id="standby-meta" class="standby-meta">Ready</div>
+    <div class="standby-hint">Tap anywhere to wake RetroTab Kiosk</div>
+</div>
+
+<!-- Top Navigation Bar -->
+<div class="topbar">
+    <div class="topbar-left">
+        <span class="brand-pill"><span class="status-dot"></span>RETROTAB WALL HUB • PURE ES5</span>
+    </div>
+    <div class="topbar-right">
+        <button id="audio-unlock-btn" class="top-btn warn" onclick="unlockAudioPlayback()">Enable Audio</button>
+        <button class="top-btn" onclick="enterStandbyMode()">Standby</button>
+        <button id="night-btn" class="top-btn" onclick="toggleNightMode()">Night</button>
+        <button class="top-btn" onclick="lockKiosk()">Lock</button>
+    </div>
+</div>
+
+<!-- Main Dashboard Grid -->
+<div class="grid-wrap" onclick="recordUserTouch()">
+    <div class="row">
+        <!-- Left 64% Column -->
+        <div class="col-left">
+            <!-- Clock + Weather Row -->
+            <div class="row" style="margin-bottom:0;">
+                <div class="col-half pad-r">
+                    <div class="card">
+                        <div class="card-title" id="greeting-title">GOOD DAY</div>
+                        <div id="clock-main" class="clock-big">00:00</div>
+                        <div id="clock-date" class="clock-date">---</div>
+                    </div>
+                </div>
+                <div class="col-half pad-l">
+                    <div id="weather-card" class="card weather-box">
+                        <div class="card-title" id="weather-city" style="color:#7dd3fc;">WEATHER</div>
+                        <div id="weather-temp" class="weather-temp">-- C</div>
+                        <div id="weather-meta" class="weather-meta">Syncing forecast...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transit Commute Card -->
+            <div class="card">
+                <div class="card-title" id="transit-title">LIVE TRANSIT ARRIVALS</div>
+                <div id="transit-list">
+                    <div class="bus-row">Loading transit routes...</div>
+                </div>
+            </div>
+
+            <!-- Spotify Media Deck -->
+            <div class="card">
+                <div class="card-title">SPOTIFY MEDIA DECK</div>
+                <div class="media-wrap">
+                    <div class="media-art-cell">
+                        <img id="sp-art" class="media-art" src="" alt="">
+                    </div>
+                    <div class="media-info-cell">
+                        <div id="sp-track" class="track-name">Not Playing</div>
+                        <div id="sp-artist" class="track-artist">Connect Spotify in .env.local</div>
+                    </div>
+                </div>
+                <div class="seek-bar-bg" onclick="seekSpotifyClick(event)">
+                    <div id="sp-progress-fill" class="seek-bar-fill"></div>
+                </div>
+                <div>
+                    <button class="ctrl-btn" onclick="spotifyCmd('prev')">Prev</button>
+                    <button id="sp-play-btn" class="ctrl-btn play" onclick="toggleSpotifyPlay()">Play</button>
+                    <button class="ctrl-btn" onclick="spotifyCmd('next')">Next</button>
+                    <button id="sp-local-btn" class="ctrl-btn" onclick="playDirectPreview()">Tablet Audio</button>
+                    <select id="sp-playlist-sel" class="select-box" onchange="playSelectedPlaylist()">
+                        <option value="">Playlists...</option>
+                    </select>
+                    <select id="sp-device-sel" class="select-box" onchange="transferSpotifyDevice()">
+                        <option value="">Devices...</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- AI Voice & One-Tap Scenes -->
+            <div class="card">
+                <div class="card-title">AI ASSISTANT &amp; ONE-TAP SCENES</div>
+                <div id="ai-reply" class="ai-reply">Ready for commands or a one-tap scene.</div>
+                <div class="chip-bar">
+                    <button class="chip-btn" onclick="sendAiPrompt('Give me a quick status briefing.')">Briefing</button>
+                    <button class="chip-btn scene-focus" onclick="runScene('focus')">Focus</button>
+                    <button class="chip-btn scene-sleep" onclick="runScene('sleep')">Sleep</button>
+                    <button class="chip-btn scene-leave" onclick="runScene('leave')">Leave Home</button>
+                    <button class="chip-btn" onclick="enterStandbyMode()">Standby Clock</button>
+                </div>
+                <div class="input-row">
+                    <div class="input-cell">
+                        <input id="ai-input" class="text-input" type="text" placeholder="Ask AI or run a command..." onkeydown="if(event.keyCode===13){sendAiInput();}">
+                    </div>
+                    <div class="btn-cell">
+                        <button class="primary-btn" onclick="sendAiInput()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right 36% Column -->
+        <div class="col-right">
+            <!-- Camera LAN Bridge Card -->
+            <div class="card">
+                <div class="card-title">
+                    LIVE CAMERA FEED
+                    <span style="float:right;">
+                        <button id="cam-main-btn" class="tab-btn active" style="padding:2px 7px;" onclick="switchCamera('main')">Room</button>
+                        <button id="cam-door-btn" class="tab-btn" style="padding:2px 7px;" onclick="switchCamera('door')">Door</button>
+                        <button id="lan-bridge-btn" class="tab-btn" style="padding:2px 7px;" onclick="configureLanBridge()">LAN</button>
+                    </span>
+                </div>
+                <img id="cam-img" class="cam-frame" alt="Camera Feed">
+            </div>
+
+            <!-- Smart Home & Safe PC Companion Card -->
+            <div class="card">
+                <div class="card-title">SMART ROOM &amp; PC COMPANION <span id="pc-status-badge" style="float:right;color:#64748b;">OFFLINE</span></div>
+                <div>
+                    <button id="light-toggle-btn" class="ctrl-btn" onclick="toggleRoomLight()">Room Light: OFF</button>
+                    <button class="ctrl-btn" onclick="sendPcCommand('sleep')">PC S0 Sleep</button>
+                    <button class="ctrl-btn" onclick="sendPcCommand('wake')">Wake Display</button>
+                    <button class="ctrl-btn" onclick="createPcPairCode()">Pair Code</button>
+                </div>
+                <div class="pc-row">
+                    <div style="font-size:11px;color:#94a3b8;">PC Master Volume: <span id="pc-vol-label">50%</span></div>
+                    <input id="pc-vol-slider" class="vol-slider" type="range" min="0" max="100" value="50" onchange="setPcVolume(this.value)">
+                </div>
+                <div id="pair-code-box" style="font-size:11px;color:#38bdf8;margin-top:4px;"></div>
+            </div>
+
+            <!-- 3-Tab Productivity Card (Mail / Calendar / Tasks) -->
+            <div class="card">
+                <div class="card-title">INBOX, CALENDAR &amp; TASKS</div>
+                <div class="tab-bar">
+                    <button id="tab-mails-btn" class="tab-btn active" onclick="switchFeedTab('mails')">Mail</button>
+                    <button id="tab-cal-btn" class="tab-btn" onclick="switchFeedTab('events')">Calendar</button>
+                    <button id="tab-tasks-btn" class="tab-btn" onclick="switchFeedTab('tasks')">Tasks</button>
+                </div>
+                <div id="feed-container" class="feed-list">
+                    <div class="feed-item">Loading workspace feed...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<audio id="kiosk-audio" preload="none"></audio>
+
+<script>
+(function () {
+    var TOKEN_KEY = 'retrotab_jwt_token';
+    var LAN_KEY = 'retrotab_lan_agent_origin';
+    var STANDBY_TIMEOUT_MS = 5 * 60 * 1000;
+
+    var authToken = '';
+    var audioUnlocked = false;
+    var nightModeManual = false;
+    var isStandbyActive = false;
+    var lastTouchTs = new Date().getTime();
+    var ttsSeq = 0;
+
+    var activeCam = 'main';
+    var activeFeedTab = 'mails';
+    var lastStatus = null;
+    var lastSpotify = null;
+    var lastFeed = { mails: [], events: [], tasks: [] };
+    var lastFeedSig = '';
+    var lastMorningAlertTs = 0;
+
+    function byId(id) { return document.getElementById(id); }
+
+    function safeGetStorage(key) {
+        try { return window.localStorage.getItem(key) || ''; } catch (e) { return ''; }
+    }
+    function safeSetStorage(key, val) {
+        try { window.localStorage.setItem(key, val); } catch (e) {}
+    }
+
+    function escapeHtml(s) {
+        return String(s || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function apiPost(url, payload, onSuccess, onError) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        if (authToken) {
+            xhr.setRequestHeader('Authorization', 'Bearer ' + authToken);
+        }
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState !== 4) return;
+            if (xhr.status === 401 && url.indexOf('/api/login') === -1) {
+                lockKiosk();
+                return;
+            }
+            var data = {};
+            try { data = JSON.parse(xhr.responseText || '{}'); } catch (e) {}
+            if (xhr.status >= 200 && xhr.status < 300) {
+                if (onSuccess) onSuccess(data);
+            } else {
+                if (onError) onError(data.error || ('HTTP ' + xhr.status));
+            }
+        };
+        xhr.send(JSON.stringify(payload || {}));
+    }
+
+    // ─── Binary ArrayBuffer -> Base64 (Pure ES5 Safari 9 safe) ───
+    function arrayBufferToBase64(buffer) {
+        var binary = '';
+        var bytes = new Uint8Array(buffer);
+        var chunk = 4096;
+        var i, j, end;
+        for (i = 0; i < bytes.length; i += chunk) {
+            end = Math.min(i + chunk, bytes.length);
+            for (j = i; j < end; j++) {
+                binary += String.fromCharCode(bytes[j]);
+            }
+        }
+        return window.btoa(binary);
+    }
+
+    function speakCharon(text) {
+        if (!text || !audioUnlocked) return;
+        ttsSeq += 1;
+        var mySeq = ttsSeq;
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/kiosk', true);
+        xhr.responseType = 'arraybuffer';
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        if (authToken) xhr.setRequestHeader('Authorization', 'Bearer ' + authToken);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState !== 4 || mySeq !== ttsSeq) return;
+            if (xhr.status === 200 && xhr.response && xhr.response.byteLength > 100) {
+                var mime = xhr.getResponseHeader('Content-Type') || 'audio/wav';
+                var b64 = arrayBufferToBase64(xhr.response);
+                var player = byId('kiosk-audio');
+                player.src = 'data:' + mime + ';base64,' + b64;
+                try { player.play(); } catch (e) {}
+            }
+        };
+        xhr.send(JSON.stringify({ actionType: 'tts', text: text }));
+    }
+
+    window.unlockAudioPlayback = function () {
+        audioUnlocked = true;
+        var player = byId('kiosk-audio');
+        try { player.play(); } catch (e) {}
+        var btn = byId('audio-unlock-btn');
+        btn.className = 'top-btn active';
+        btn.innerHTML = 'Audio Ready';
+    };
+
+    window.recordUserTouch = function () {
+        lastTouchTs = new Date().getTime();
+    };
+
+    window.enterStandbyMode = function () {
+        isStandbyActive = true;
+        updateStandbyMeta();
+        byId('standby-overlay').style.display = 'block';
+    };
+
+    window.exitStandbyMode = function () {
+        isStandbyActive = false;
+        lastTouchTs = new Date().getTime();
+        byId('standby-overlay').style.display = 'none';
+        refreshCameraFrame();
+    };
+
+    window.toggleNightMode = function () {
+        nightModeManual = !nightModeManual;
+        applyNightMode();
+    };
+
+    function applyNightMode() {
+        var hr = new Date().getHours();
+        var autoNight = (hr >= 23 || hr < 6);
+        var on = nightModeManual || autoNight;
+        document.body.className = on ? 'night-mode' : '';
+        var btn = byId('night-btn');
+        btn.className = on ? 'top-btn active' : 'top-btn';
+    }
+
+    window.submitLogin = function () {
+        var u = byId('login-user').value;
+        var p = byId('login-pass').value;
+        byId('login-error').innerHTML = '';
+        apiPost('/api/login', { username: u, password: p }, function (res) {
+            if (res.token) {
+                authToken = res.token;
+                safeSetStorage(TOKEN_KEY, authToken);
+                byId('login-overlay').style.display = 'none';
+                bootDashboard();
+            }
+        }, function (err) {
+            byId('login-error').innerHTML = escapeHtml(err);
+        });
+    };
+
+    window.lockKiosk = function () {
+        authToken = '';
+        safeSetStorage(TOKEN_KEY, '');
+        byId('login-overlay').style.display = 'block';
+    };
+
+    function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+    function updateClock() {
+        var now = new Date();
+        var hhmm = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
+        var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        var dateStr = days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate();
+
+        byId('clock-main').innerHTML = hhmm;
+        byId('clock-date').innerHTML = dateStr;
+        byId('standby-clock').innerHTML = hhmm;
+        byId('standby-date').innerHTML = dateStr;
+
+        applyNightMode();
+
+        if (!isStandbyActive && authToken && (now.getTime() - lastTouchTs) > STANDBY_TIMEOUT_MS) {
+            enterStandbyMode();
+        }
+    }
+
+    function updateStandbyMeta() {
+        var parts = [];
+        if (lastSpotify && lastSpotify.track && lastSpotify.track !== 'Not Playing') {
+            parts.push(lastSpotify.track);
+        }
+        if (lastStatus && lastStatus.transit && lastStatus.transit.arrivals && lastStatus.transit.arrivals[0]) {
+            var b = lastStatus.transit.arrivals[0];
+            parts.push(b.line + ' in ' + b.etaMin + 'm');
+        }
+        if (lastStatus && lastStatus.weather) {
+            parts.push(lastStatus.weather.tempC + 'C ' + lastStatus.weather.label);
+        }
+        byId('standby-meta').innerHTML = escapeHtml(parts.length ? parts.join('  •  ') : 'Standby Ready');
+    }
+
+    function checkProactiveMorningAlert(statusData) {
+        var now = new Date();
+        var hr = now.getHours();
+        if (hr < 7 || hr >= 9) return;
+        if ((now.getTime() - lastMorningAlertTs) < 15 * 60 * 1000) return;
+
+        var arrivals = (statusData.transit && statusData.transit.arrivals) || [];
+        var preferred = (statusData.config && statusData.config.preferredLine) || '';
+        var chosen = arrivals[0];
+        var i;
+        for (i = 0; i < arrivals.length; i++) {
+            if (preferred && arrivals[i].line === preferred) {
+                chosen = arrivals[i];
+                break;
+            }
+        }
+        if (!chosen) return;
+        if (chosen.stopsAway <= 3 || chosen.etaMin <= 5) {
+            lastMorningAlertTs = now.getTime();
+            var rainNote = (statusData.weather && statusData.weather.isRainy) ? ' Rain detected, grab an umbrella.' : '';
+            var msg = chosen.line + ' is ' + chosen.stopsAway + ' stops away (' + chosen.etaMin + ' min).' + rainNote;
+            byId('ai-reply').innerHTML = escapeHtml(msg);
+            speakCharon(msg);
+        }
+    }
+
+    function refreshStatus() {
+        if (!authToken) return;
+        apiPost('/api/kiosk', { actionType: 'status' }, function (data) {
+            lastStatus = data;
+            var user = (data.config && data.config.userName) || 'User';
+            var hr = new Date().getHours();
+            var greet = hr < 12 ? 'GOOD MORNING' : (hr < 18 ? 'GOOD AFTERNOON' : 'GOOD EVENING');
+            byId('greeting-title').innerHTML = escapeHtml(greet + ', ' + user.toUpperCase());
+
+            if (data.weather) {
+                byId('weather-city').innerHTML = escapeHtml((data.weather.city || 'WEATHER').toUpperCase());
+                byId('weather-temp').innerHTML = data.weather.tempC + '&deg;C';
+                byId('weather-meta').innerHTML = escapeHtml(data.weather.label + ' • Feels ' + data.weather.feelsLikeC + 'C • Wind ' + data.weather.windKmh + ' km/h');
+                byId('weather-card').className = data.weather.isRainy ? 'card weather-box rain' : 'card weather-box';
+            }
+
+            if (data.transit) {
+                byId('transit-title').innerHTML = escapeHtml('TRANSIT • ' + data.transit.stopName + ' -> ' + data.transit.destination);
+                var html = '';
+                var list = data.transit.arrivals || [];
+                var i;
+                for (i = 0; i < list.length; i++) {
+                    var b = list[i];
+                    html += '<div class="bus-row">'
+                        + '<span class="bus-line">' + escapeHtml(b.line) + '</span>'
+                        + '<span>' + escapeHtml(b.headsign || '') + '</span>'
+                        + '<span class="bus-eta">' + b.etaMin + ' min</span>'
+                        + '<div class="bus-sub">' + b.stopsAway + ' stops away • Trip ~' + b.tripMin + ' min</div>'
+                        + '</div>';
+                }
+                byId('transit-list').innerHTML = html || '<div class="bus-row">No arrivals available</div>';
+            }
+
+            var lightBtn = byId('light-toggle-btn');
+            lightBtn.innerHTML = 'Room Light: ' + (data.roomLightOn ? 'ON' : 'OFF');
+            lightBtn.className = data.roomLightOn ? 'ctrl-btn play' : 'ctrl-btn';
+
+            if (data.pc) {
+                var badge = byId('pc-status-badge');
+                badge.innerHTML = data.pc.online ? 'ONLINE' : 'OFFLINE';
+                badge.style.color = data.pc.online ? '#10b981' : '#64748b';
+                byId('pc-vol-label').innerHTML = data.pc.volume + '%';
+                byId('pc-vol-slider').value = data.pc.volume;
+            }
+
+            updateStandbyMeta();
+            checkProactiveMorningAlert(data);
+        });
+    }
+
+    // ─── Spotify Controls ───
+    function refreshSpotify() {
+        if (!authToken) return;
+        apiPost('/api/kiosk', { actionType: 'spotify', op: 'status' }, function (sp) {
+            lastSpotify = sp;
+            byId('sp-track').innerHTML = escapeHtml(sp.track || 'Not Playing');
+            byId('sp-artist').innerHTML = escapeHtml(sp.artist || '');
+            if (sp.albumArt) {
+                byId('sp-art').src = sp.albumArt;
+            }
+            byId('sp-play-btn').innerHTML = sp.isPlaying ? 'Pause' : 'Play';
+            var pct = (sp.durationMs > 0) ? Math.min(100, Math.round((sp.progressMs / sp.durationMs) * 100)) : 0;
+            byId('sp-progress-fill').style.width = pct + '%';
+
+            var devSel = byId('sp-device-sel');
+            var devSig = JSON.stringify(sp.devices || []);
+            if (devSel.getAttribute('data-sig') !== devSig) {
+                devSel.setAttribute('data-sig', devSig);
+                var dHtml = '<option value="">Devices...</option>';
+                var i;
+                for (i = 0; i < (sp.devices || []).length; i++) {
+                    var d = sp.devices[i];
+                    dHtml += '<option value="' + escapeHtml(d.id) + '"' + (d.active ? ' selected' : '') + '>' + escapeHtml(d.name) + '</option>';
+                }
+                devSel.innerHTML = dHtml;
+            }
+            updateStandbyMeta();
+        });
+    }
+
+    function loadSpotifyPlaylists() {
+        if (!authToken) return;
+        apiPost('/api/kiosk', { actionType: 'spotify', op: 'playlists' }, function (res) {
+            var sel = byId('sp-playlist-sel');
+            var html = '<option value="">Playlists...</option>';
+            var list = res.playlists || [];
+            var i;
+            for (i = 0; i < list.length; i++) {
+                html += '<option value="' + escapeHtml(list[i].uri) + '">' + escapeHtml(list[i].name) + '</option>';
+            }
+            sel.innerHTML = html;
+        });
+    }
+
+    window.spotifyCmd = function (op) {
+        apiPost('/api/kiosk', { actionType: 'spotify', op: op }, function () { refreshSpotify(); });
+    };
+
+    window.toggleSpotifyPlay = function () {
+        var op = (lastSpotify && lastSpotify.isPlaying) ? 'pause' : 'play';
+        window.spotifyCmd(op);
+    };
+
+    window.playSelectedPlaylist = function () {
+        var uri = byId('sp-playlist-sel').value;
+        if (!uri) return;
+        apiPost('/api/kiosk', { actionType: 'spotify', op: 'play', contextUri: uri }, function () { refreshSpotify(); });
+    };
+
+    window.transferSpotifyDevice = function () {
+        var id = byId('sp-device-sel').value;
+        if (!id) return;
+        apiPost('/api/kiosk', { actionType: 'spotify', op: 'transfer', deviceId: id }, function () { refreshSpotify(); });
+    };
+
+    window.seekSpotifyClick = function (ev) {
+        if (!lastSpotify || !lastSpotify.durationMs) return;
+        var rect = ev.currentTarget.getBoundingClientRect();
+        var ratio = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
+        var targetMs = Math.round(ratio * lastSpotify.durationMs);
+        apiPost('/api/kiosk', { actionType: 'spotify', op: 'seek', positionMs: targetMs }, function () { refreshSpotify(); });
+    };
+
+    window.playDirectPreview = function () {
+        if (!lastSpotify || !lastSpotify.previewUrl) {
+            byId('ai-reply').innerHTML = 'No 30s direct preview URL available for current track; using Spotify Connect speaker.';
+            return;
+        }
+        var player = byId('kiosk-audio');
+        player.src = lastSpotify.previewUrl;
+        try { player.play(); } catch (e) {}
+    };
+
+    // ─── AI Assistant & One-Tap Scenes ───
+    window.sendAiPrompt = function (msg) {
+        byId('ai-reply').innerHTML = 'Thinking...';
+        apiPost('/api/kiosk', { actionType: 'chat', message: msg }, function (res) {
+            var reply = res.reply || 'Done.';
+            byId('ai-reply').innerHTML = escapeHtml(reply);
+            speakCharon(reply);
+        });
+    };
+
+    window.sendAiInput = function () {
+        var inp = byId('ai-input');
+        var val = (inp.value || '').replace(/^\s+|\s+$/g, '');
+        if (!val) return;
+        inp.value = '';
+        window.sendAiPrompt(val);
+    };
+
+    window.runScene = function (sceneName) {
+        byId('ai-reply').innerHTML = 'Running scene: ' + escapeHtml(sceneName) + '...';
+        apiPost('/api/kiosk', { actionType: 'scene', scene: sceneName }, function (res) {
+            if (res.spotifyAction === 'play' || res.spotifyAction === 'pause') {
+                window.spotifyCmd(res.spotifyAction);
+            }
+            if (res.reply) {
+                byId('ai-reply').innerHTML = escapeHtml(res.reply);
+                speakCharon(res.reply);
+            }
+            refreshStatus();
+        });
+    };
+
+    // ─── Smart Home & Safe PC Companion ───
+    window.toggleRoomLight = function () {
+        var target = !(lastStatus && lastStatus.roomLightOn);
+        apiPost('/api/kiosk', { actionType: 'ha_toggle', on: target }, function () { refreshStatus(); });
+    };
+
+    window.sendPcCommand = function (cmd) {
+        apiPost('/api/kiosk', { actionType: 'pc_command', command: cmd }, function () {
+            byId('ai-reply').innerHTML = 'PC command queued: ' + escapeHtml(cmd);
+        });
+    };
+
+    window.setPcVolume = function (val) {
+        var n = parseInt(val, 10) || 50;
+        byId('pc-vol-label').innerHTML = n + '%';
+        apiPost('/api/kiosk', { actionType: 'pc_command', command: 'volume_set', payload: { level: n } });
+    };
+
+    window.createPcPairCode = function () {
+        apiPost('/api/kiosk', { actionType: 'pc_pair_create' }, function (res) {
+            if (res.code) {
+                byId('pair-code-box').innerHTML = 'Run on PC: node agent/laptop-agent.mjs --pair ' + escapeHtml(res.code);
+            }
+        });
+    };
+
+    // ─── Camera LAN Bridge ───
+    function refreshCameraFrame() {
+        if (!authToken || isStandbyActive) return;
+        var lanOrigin = safeGetStorage(LAN_KEY);
+        var ts = new Date().getTime();
+        var url;
+        if (lanOrigin) {
+            url = lanOrigin.replace(/\/+$/, '') + '/api/agent/camera?cam=' + activeCam + '&t=' + ts;
+        } else {
+            url = '/api/kiosk?action=camera_frame&cam=' + activeCam + '&token=' + encodeURIComponent(authToken) + '&t=' + ts;
+        }
+        byId('cam-img').src = url;
+        byId('lan-bridge-btn').className = lanOrigin ? 'tab-btn active' : 'tab-btn';
+    }
+
+    window.switchCamera = function (cam) {
+        activeCam = cam === 'door' ? 'door' : 'main';
+        byId('cam-main-btn').className = activeCam === 'main' ? 'tab-btn active' : 'tab-btn';
+        byId('cam-door-btn').className = activeCam === 'door' ? 'tab-btn active' : 'tab-btn';
+        refreshCameraFrame();
+    };
+
+    window.configureLanBridge = function () {
+        var cur = safeGetStorage(LAN_KEY) || 'http://192.168.1.20:8091';
+        var entered = window.prompt('Enter your local LAN Companion Agent URL (or clear to use cloud placeholder):', cur);
+        if (entered === null) return;
+        safeSetStorage(LAN_KEY, (entered || '').replace(/^\s+|\s+$/g, ''));
+        refreshCameraFrame();
+    };
+
+    // ─── 3-Tab Productivity Feed (Mail / Calendar / Tasks) ───
+    function renderFeed() {
+        var box = byId('feed-container');
+        var html = '';
+        var i;
+        if (activeFeedTab === 'mails') {
+            var mails = lastFeed.mails || [];
+            if (!mails.length) html = '<div class="feed-item">Connect Gmail OAuth env vars to view inbox.</div>';
+            for (i = 0; i < mails.length; i++) {
+                html += '<div class="feed-item"><strong>' + escapeHtml(mails[i].subject) + '</strong><div class="feed-sub">' + escapeHtml(mails[i].from) + '</div></div>';
+            }
+        } else if (activeFeedTab === 'events') {
+            var evs = lastFeed.events || [];
+            if (!evs.length) html = '<div class="feed-item">No upcoming calendar events.</div>';
+            for (i = 0; i < evs.length; i++) {
+                html += '<div class="feed-item"><strong>' + escapeHtml(evs[i].title) + '</strong><div class="feed-sub">' + escapeHtml(evs[i].start) + '</div></div>';
+            }
+        } else {
+            var tasks = lastFeed.tasks || [];
+            if (!tasks.length) html = '<div class="feed-item">No tasks found.</div>';
+            for (i = 0; i < tasks.length; i++) {
+                var t = tasks[i];
+                var done = t.status === 'completed';
+                html += '<button class="task-row-btn' + (done ? ' done' : '') + '" onclick="toggleTask(\'' + escapeHtml(t.id) + '\',' + (!done) + ')">'
+                    + (done ? '[x] ' : '[ ] ') + escapeHtml(t.title) + '</button>';
+            }
+        }
+        box.innerHTML = html;
+    }
+
+    function refreshCommsFeed() {
+        if (!authToken) return;
+        apiPost('/api/kiosk', { actionType: 'comms_feed' }, function (res) {
+            var sig = JSON.stringify(res);
+            if (sig === lastFeedSig) return;
+            lastFeedSig = sig;
+            lastFeed = res;
+            renderFeed();
+        });
+    }
+
+    window.switchFeedTab = function (tab) {
+        activeFeedTab = tab;
+        byId('tab-mails-btn').className = tab === 'mails' ? 'tab-btn active' : 'tab-btn';
+        byId('tab-cal-btn').className = tab === 'events' ? 'tab-btn active' : 'tab-btn';
+        byId('tab-tasks-btn').className = tab === 'tasks' ? 'tab-btn active' : 'tab-btn';
+        renderFeed();
+    };
+
+    window.toggleTask = function (taskId, completed) {
+        apiPost('/api/kiosk', { actionType: 'task_toggle', taskId: taskId, completed: completed }, function () {
+            lastFeedSig = '';
+            refreshCommsFeed();
+        });
+    };
+
+    var booted = false;
+    function bootDashboard() {
+        refreshStatus();
+        refreshSpotify();
+        loadSpotifyPlaylists();
+        refreshCommsFeed();
+        refreshCameraFrame();
+
+        if (!booted) {
+            booted = true;
+            window.setInterval(refreshStatus, 60000);
+            window.setInterval(refreshSpotify, 12000);
+            window.setInterval(refreshCommsFeed, 45000);
+            window.setInterval(refreshCameraFrame, 5000);
+        }
+    }
+
+    // Boot
+    updateClock();
+    window.setInterval(updateClock, 15000);
+    authToken = safeGetStorage(TOKEN_KEY);
+    if (authToken) {
+        byId('login-overlay').style.display = 'none';
+        bootDashboard();
+    }
+})();
+</script>
+</body>
+</html>

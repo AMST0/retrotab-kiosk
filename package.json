@@ -1,0 +1,21 @@
+{
+  "name": "retrotab-kiosk",
+  "version": "1.0.0",
+  "type": "module",
+  "private": false,
+  "description": "Open-source Pure ES5 AI Smart Wall Hub engineered to revive legacy iPad 2 (iOS 9.3.5) and decade-old tablets.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "agent": "node agent/laptop-agent.mjs",
+    "agent:pair": "node agent/laptop-agent.mjs --pair",
+    "agent:autostart": "node agent/install-startup.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
